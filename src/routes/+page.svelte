@@ -59,7 +59,7 @@
     name="keywords"
     content="online compiler, online code editor, real time code editor, collaborative code editor, online IDE, code compiler online, run code online, pair programming tool, live code editor, real time collaboration, code together online, online coding platform, code execution online, JavaScript compiler online, Python compiler online, TypeScript compiler, C compiler online, C++ compiler online, Java compiler online, Monaco editor online, VS Code online, code sharing platform, coding interview tool, remote pair programming, collaborative IDE, live coding, shared code editor, multi language compiler, sandbox code execution, code runner online, web based IDE, browser code editor, free online compiler, compile and run code, online code runner"
   />
-  <link rel="canonical" href="https://codeduo.dev/" />
+  <link rel="canonical" href="https://codeduo.bittuthecoder.me/" />
 
   <!-- Open Graph -->
   <meta
@@ -70,7 +70,7 @@
     property="og:description"
     content="Free online compiler and collaborative code editor. Write, compile, and run code together in 6 languages with VS Code themes, live cursors, and sandboxed execution."
   />
-  <meta property="og:url" content="https://codeduo.dev/" />
+  <meta property="og:url" content="https://codeduo.bittuthecoder.me/" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="CodeDuo" />
 
@@ -87,7 +87,7 @@
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
     name: 'CodeDuo',
-    url: 'https://codeduo.dev',
+    url: 'https://codeduo.bittuthecoder.me',
     description:
       'Free online compiler and real-time collaborative code editor for pair programming. Compile and run JavaScript, Python, TypeScript, C, C++, and Java with VS Code themes and live cursors.',
     applicationCategory: 'DeveloperApplication',
@@ -132,7 +132,7 @@
       <span class="brand-name">CodeDuo</span>
     </div>
     <a
-      href="https://github.com"
+      href="https://github.com/bittu-the-coder"
       target="_blank"
       rel="noopener noreferrer"
       class="nav-link"

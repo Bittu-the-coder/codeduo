@@ -1,3 +1,4 @@
+import { createServer, IncomingMessage, ServerResponse } from 'http';
 import { WebSocket, WebSocketServer } from 'ws';
 import * as Y from 'yjs';
 
@@ -43,16 +44,36 @@ function cleanupRoom(name: string): void {
 const MESSAGE_SYNC = 0;
 const MESSAGE_AWARENESS = 1;
 
-// ── WebSocket Server ──
-const wss = new WebSocketServer({ port: PORT, host: HOST });
+// ── HTTP Server (required for GCP Cloud Run) ──
+const server = createServer((req: IncomingMessage, res: ServerResponse) => {
+	// CORS headers
+	res.setHeader('Access-Control-Allow-Origin', '*');
+	res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+	res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-console.log(`
-╔══════════════════════════════════════╗
-║   🚀 CodeDuo Collaboration Server   ║
-║                                      ║
-║   ws://${HOST}:${PORT}               ║
-╚══════════════════════════════════════╝
-`);
+	if (req.method === 'OPTIONS') {
+		res.writeHead(204);
+		res.end();
+		return;
+	}
+
+	// Health check endpoint (used by Cloud Run)
+	if (req.url === '/health' || req.url === '/') {
+		res.writeHead(200, { 'Content-Type': 'application/json' });
+		res.end(JSON.stringify({
+			status: 'ok',
+			rooms: rooms.size,
+			uptime: process.uptime()
+		}));
+		return;
+	}
+
+	res.writeHead(404);
+	res.end('Not found');
+});
+
+// ── WebSocket Server (attached to HTTP server) ──
+const wss = new WebSocketServer({ server });
 
 wss.on('connection', (ws: WebSocket, req) => {
 	// Extract room name from URL path
@@ -93,16 +114,33 @@ wss.on('connection', (ws: WebSocket, req) => {
 	});
 });
 
+// ── Start Server ──
+server.listen(PORT, HOST, () => {
+	console.log(`
+╔══════════════════════════════════════╗
+║   🚀 CodeDuo Collaboration Server   ║
+║                                      ║
+║   http://${HOST}:${PORT}              ║
+║   ws://${HOST}:${PORT}               ║
+╚══════════════════════════════════════╝
+`);
+});
+
 // ── Graceful Shutdown ──
-process.on('SIGINT', () => {
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);
+
+function shutdown() {
 	console.log('\n🛑 Shutting down server...');
 	wss.close(() => {
 		rooms.forEach((room) => room.doc.destroy());
 		rooms.clear();
-		console.log('✅ Server shut down gracefully');
-		process.exit(0);
+		server.close(() => {
+			console.log('✅ Server shut down gracefully');
+			process.exit(0);
+		});
 	});
-});
+}
 
 // ── Stats Logging ──
 setInterval(() => {

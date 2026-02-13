@@ -1,9 +1,10 @@
 // Y.js collaboration setup for real-time document sync
 
+import { PUBLIC_WS_URL } from '$env/static/public';
 import { WebsocketProvider } from 'y-websocket';
 import * as Y from 'yjs';
 
-const WS_SERVER = 'ws://localhost:4444';
+const WS_SERVER = PUBLIC_WS_URL || 'ws://localhost:4444';
 
 export interface CollaborationInstance {
 	ydoc: Y.Doc;

@@ -1,0 +1,19 @@
+{
+	"name": "codeduo-server",
+	"private": true,
+	"version": "1.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "bun run src/index.ts",
+		"start": "bun run src/index.ts"
+	},
+	"dependencies": {
+		"ws": "^8.18.0",
+		"yjs": "^13.6.29",
+		"y-websocket": "^3.0.0"
+	},
+	"devDependencies": {
+		"@types/ws": "^8.5.13",
+		"typescript": "^5.9.3"
+	}
+}

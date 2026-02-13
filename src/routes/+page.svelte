@@ -132,7 +132,7 @@
       <span class="brand-name">CodeDuo</span>
     </div>
     <a
-      href="https://github.com/bittu-the-coder"
+      href="https://github.com/Bittu-the-coder/codeduo"
       target="_blank"
       rel="noopener noreferrer"
       class="nav-link"

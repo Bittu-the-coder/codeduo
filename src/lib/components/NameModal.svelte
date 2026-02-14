@@ -36,7 +36,6 @@
           bind:value={nameInput}
           onkeydown={handleKeydown}
           maxlength="20"
-          autofocus
         />
       </div>
       <button class="modal-btn" onclick={onSubmit} disabled={!nameInput.trim()}>

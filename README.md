@@ -1,42 +1,105 @@
-# sv
+# CodeDuo Deployment Guide
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+This repo is split into:
+- Frontend: SvelteKit app at repo root (deploy to Vercel)
+- Backend: Bun + TypeScript API in `server/` (deploy to GCP Cloud Run)
 
-## Creating a project
+## 1. Local Development
 
-If you're seeing this, you've probably already done this step. Congrats!
+### Prerequisites
+- Node.js 20+
+- Bun 1.1+
+- MongoDB
+- Redis
 
-```sh
-# create a new project
-npx sv create my-app
+### Install
+```bash
+npm install
+cd server && bun install
 ```
 
-To recreate this project with the same configuration:
-
-```sh
-# recreate this project
-bun x sv create --template minimal --types ts --install bun ./
+### Configure env files
+```bash
+cp .env.example .env
+cp server/.env.example server/.env
 ```
 
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+### Run
+```bash
+npm run dev:all
 ```
 
-## Building
+Frontend: `http://localhost:5173`
+Backend: `http://localhost:3001`
 
-To create a production version of your app:
+## 2. Frontend Deploy (Vercel)
 
-```sh
+Project root for Vercel is this repo root.
+
+### Required Vercel environment variables
+- `VITE_API_URL=https://<your-backend-domain>/api`
+- `VITE_SOCKET_URL=https://<your-backend-domain>`
+- `PUBLIC_WS_URL=wss://<your-backend-domain>`
+- `API_URL=https://<your-backend-domain>/api` (for server-side route loads)
+
+### Build settings
+- Framework preset: `SvelteKit`
+- Install command: `npm ci`
+- Build command: `npm run build`
+
+## 3. Backend Deploy (GCP Cloud Run)
+
+Deploy from `server/` using Docker.
+
+### Required Cloud Run environment variables
+- `NODE_ENV=production`
+- `PORT=8080`
+- `HOST=0.0.0.0`
+- `MONGODB_URI=...`
+- `REDIS_URL=...`
+- `JWT_SECRET=...`
+- `REFRESH_TOKEN_SECRET=...`
+- `FRONTEND_URL=https://<your-vercel-domain>`
+- `FRONTEND_URLS=https://<your-vercel-domain>[,https://<extra-domain>]`
+- `ALLOW_VERCEL_PREVIEW_ORIGINS=true` (optional, enables `*.vercel.app` preview domains)
+- `BACKEND_URL=https://<your-backend-domain>`
+- `GITHUB_CLIENT_ID=...` (if OAuth enabled)
+- `GITHUB_CLIENT_SECRET=...` (if OAuth enabled)
+- `GITHUB_CALLBACK_URL=https://<your-backend-domain>/api/auth/github/callback` (optional, auto-derived from `BACKEND_URL`)
+
+### Option A: one-command Cloud Build + Cloud Run deploy
+```bash
+gcloud builds submit server --config server/cloudbuild.yaml
+```
+
+### Option B: manual deploy
+```bash
+gcloud run deploy codeduo-server \
+  --source server \
+  --region us-central1 \
+  --allow-unauthenticated
+```
+
+## 4. Important Production Notes
+
+- Cross-site auth cookies are configured for Vercel frontend + GCP backend in production (`SameSite=None; Secure`).
+- CORS allows:
+  - `FRONTEND_URL`
+  - all values in `FRONTEND_URLS`
+  - optional Vercel previews when `ALLOW_VERCEL_PREVIEW_ORIGINS=true`
+- For GitHub OAuth, set callback URL in GitHub App settings to:
+  - `https://<your-backend-domain>/api/auth/github/callback`
+
+## 5. Verification
+
+Frontend:
+```bash
 npm run build
+npm run check
 ```
 
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+Backend:
+```bash
+cd server
+bun run build
+```

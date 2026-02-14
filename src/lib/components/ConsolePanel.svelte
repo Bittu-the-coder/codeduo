@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { ExecutionState } from '$lib/index';
+  import { ChevronDown, ChevronUp, Terminal } from 'lucide-svelte';
 
   let {
     consoleLines,
@@ -15,6 +16,8 @@
     execution: ExecutionState;
     onClear: () => void;
   } = $props();
+
+  let stdinExpanded = $state(false);
 
   // Auto-scroll to bottom when new lines are added
   $effect(() => {
@@ -92,34 +95,34 @@
   </div>
 
   <!-- Stdin Input -->
-  <div class="stdin-section">
-    <div class="stdin-label">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="12"
-        height="12"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <polyline points="4 17 10 11 4 5" /><line
-          x1="12"
-          y1="19"
-          x2="20"
-          y2="19"
-        />
-      </svg>
-      stdin
-    </div>
-    <textarea
-      class="stdin-input"
-      bind:value={stdinInput}
-      placeholder="Provide input for your program..."
-      rows="3"
-    ></textarea>
+  <div class="stdin-section" class:expanded={stdinExpanded}>
+    <button
+      class="stdin-header"
+      onclick={() => (stdinExpanded = !stdinExpanded)}
+    >
+      <div class="stdin-label">
+        <Terminal size={12} />
+        <span>stdin</span>
+        {#if stdinInput.trim()}
+          <span class="stdin-indicator">has input</span>
+        {/if}
+      </div>
+      <div class="stdin-toggle">
+        {#if stdinExpanded}
+          <ChevronDown size={14} />
+        {:else}
+          <ChevronUp size={14} />
+        {/if}
+      </div>
+    </button>
+    {#if stdinExpanded}
+      <textarea
+        class="stdin-input"
+        bind:value={stdinInput}
+        placeholder="Provide input for your program (one value per line for multiple inputs)..."
+        rows="6"
+      ></textarea>
+    {/if}
   </div>
 </div>
 
@@ -248,8 +251,23 @@
   /* Stdin */
   .stdin-section {
     border-top: 1px solid rgba(255, 255, 255, 0.06);
-    padding: var(--space-2) var(--space-3);
     flex-shrink: 0;
+  }
+
+  .stdin-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: var(--space-2) var(--space-3);
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+  }
+
+  .stdin-header:hover {
+    background: rgba(255, 255, 255, 0.03);
   }
 
   .stdin-label {
@@ -259,11 +277,30 @@
     font-size: var(--text-xs);
     font-weight: 500;
     color: var(--console-stdin, #58a6ff);
-    margin-bottom: var(--space-1);
+  }
+
+  .stdin-indicator {
+    font-size: var(--text-xs);
+    color: var(--console-success, #3fb950);
+    background: rgba(63, 185, 80, 0.15);
+    padding: 1px 6px;
+    border-radius: var(--radius-sm);
+    font-weight: 400;
+  }
+
+  .stdin-toggle {
+    color: var(--console-info, #8b949e);
+    display: flex;
+    align-items: center;
+  }
+
+  .stdin-section.expanded .stdin-input {
+    display: block;
   }
 
   .stdin-input {
-    width: 100%;
+    width: calc(100% - var(--space-3) * 2);
+    margin: 0 var(--space-3) var(--space-2);
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: var(--radius-sm);
@@ -272,12 +309,14 @@
     font-size: var(--text-xs);
     color: var(--console-text, #c9d1d9);
     resize: vertical;
-    min-height: 40px;
+    min-height: 80px;
+    max-height: 200px;
     transition: border-color var(--transition-fast);
   }
 
   .stdin-input:focus {
     border-color: var(--console-stdin, #58a6ff);
+    outline: none;
   }
   .stdin-input::placeholder {
     color: rgba(201, 209, 217, 0.3);

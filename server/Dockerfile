@@ -1,15 +1,31 @@
-FROM oven/bun:1 AS base
+FROM oven/bun:1-alpine AS base
 WORKDIR /app
 
 # Install dependencies
+FROM base AS deps
 COPY package.json bun.lock* ./
-RUN bun install --frozen-lockfile --production
+RUN bun install --frozen-lockfile
 
-# Copy source
-COPY src/ ./src/
+# Build stage
+FROM base AS builder
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+RUN bun run build
 
-# Cloud Run sets PORT env var automatically
-ENV HOST=0.0.0.0
-EXPOSE 8080
+# Production stage
+FROM base AS runner
+ENV NODE_ENV=production
 
-CMD ["bun", "run", "src/index.ts"]
+# Copy built files
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./
+
+# Create non-root user
+RUN addgroup --system --gid 1001 nodejs && \
+  adduser --system --uid 1001 codeduo
+USER codeduo
+
+EXPOSE 3001
+
+CMD ["bun", "run", "dist/server.js"]

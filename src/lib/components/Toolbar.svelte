@@ -3,6 +3,7 @@
   import type { ExecutionState } from '$lib/index';
   import type { LanguageConfig } from '$lib/languages';
   import type { ThemeDefinition } from '$lib/themes';
+  import { LayoutDashboard } from 'lucide-svelte';
 
   let {
     roomId,
@@ -21,6 +22,7 @@
     onCopyRoomLink,
     onGoHome,
     onRunCode,
+    onSaveCode,
   }: {
     roomId: string;
     currentTheme: ThemeDefinition;
@@ -38,6 +40,7 @@
     onCopyRoomLink: () => void;
     onGoHome: () => void;
     onRunCode: () => void;
+    onSaveCode: () => void;
   } = $props();
 </script>
 
@@ -47,6 +50,14 @@
       <span class="logo-bracket">&lt;</span><span class="logo-text">CD</span
       ><span class="logo-bracket">/&gt;</span>
     </button>
+
+    <div class="toolbar-divider"></div>
+
+    <!-- Dashboard Link -->
+    <a href="/dashboard" class="toolbar-link" title="Dashboard">
+      <LayoutDashboard size={16} />
+      <span>Dashboard</span>
+    </a>
 
     <div class="toolbar-divider"></div>
 
@@ -238,6 +249,32 @@
       {/if}
     </div>
 
+    <!-- Save Button -->
+    <button
+      class="btn-secondary"
+      onclick={onSaveCode}
+      title="Save Project (Ctrl+S)"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path
+          d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
+        ></path>
+        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+        <polyline points="7 3 7 8 15 8"></polyline>
+      </svg>
+      <span>Save</span>
+    </button>
+
     <!-- Run Button -->
     <button
       class="btn-run"
@@ -326,6 +363,23 @@
     height: 20px;
     background: var(--ui-border, var(--border-default));
     opacity: 0.5;
+  }
+
+  .toolbar-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-1) var(--space-2);
+    color: var(--ui-text-secondary, var(--text-secondary));
+    font-size: var(--text-sm);
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+  }
+
+  .toolbar-link:hover {
+    color: var(--ui-text, var(--text-primary));
+    background: rgba(255, 255, 255, 0.06);
   }
 
   /* Room Badge */
@@ -598,6 +652,24 @@
   .btn-run.running {
     background: linear-gradient(135deg, #f59e0b, #d97706);
     box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+  }
+
+  .btn-secondary {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--ui-text, var(--text-primary));
+    border: 1px solid var(--ui-border, var(--border-default));
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-base);
+  }
+  .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
   }
 
   .spinner {

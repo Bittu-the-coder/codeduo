@@ -1,34 +1,46 @@
 <script lang="ts">
-  // No props needed - standalone navbar
+  import { isAuthenticated, isAuthLoading } from '$lib/stores';
 </script>
 
 <nav class="nav">
   <div class="nav-brand">
-    <div class="logo">
-      <span class="logo-bracket">&lt;</span><span class="logo-text">CD</span
-      ><span class="logo-bracket">/&gt;</span>
-    </div>
-    <span class="brand-name">CodeDuo</span>
+    <a href="/" class="brand-link">
+      <div class="logo">
+        <span class="logo-bracket">&lt;</span><span class="logo-text">CD</span
+        ><span class="logo-bracket">/&gt;</span>
+      </div>
+      <span class="brand-name">CodeDuo</span>
+    </a>
   </div>
-  <a
-    href="https://github.com/Bittu-the-coder/codeduo"
-    target="_blank"
-    rel="noopener noreferrer"
-    class="nav-link"
-    aria-label="GitHub"
-  >
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="currentColor"
+  <div class="nav-actions">
+    <a
+      href="https://github.com/Bittu-the-coder/codeduo"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="nav-link"
+      aria-label="GitHub"
     >
-      <path
-        d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
-      />
-    </svg>
-  </a>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+      >
+        <path
+          d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
+        />
+      </svg>
+    </a>
+    {#if $isAuthLoading}
+      <span class="nav-loading">...</span>
+    {:else if $isAuthenticated}
+      <a href="/dashboard" class="nav-btn nav-btn-primary">Dashboard</a>
+    {:else}
+      <a href="/login" class="nav-btn nav-btn-ghost">Login</a>
+      <a href="/register" class="nav-btn nav-btn-primary">Get Started</a>
+    {/if}
+  </div>
 </nav>
 
 <style>
@@ -68,6 +80,12 @@
     color: var(--text-primary);
   }
 
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
   .nav-link {
     color: var(--text-secondary);
     transition: color var(--transition-fast);
@@ -76,6 +94,46 @@
 
   .nav-link:hover {
     color: var(--text-primary);
+  }
+
+  .brand-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    text-decoration: none;
+  }
+
+  .nav-btn {
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    font-size: var(--text-sm);
+    transition: all var(--transition-fast);
+    text-decoration: none;
+  }
+
+  .nav-btn-ghost {
+    color: var(--text-secondary);
+    background: transparent;
+  }
+
+  .nav-btn-ghost:hover {
+    color: var(--text-primary);
+    background: var(--surface-hover);
+  }
+
+  .nav-btn-primary {
+    color: var(--bg-primary);
+    background: var(--accent-primary);
+  }
+
+  .nav-btn-primary:hover {
+    background: var(--accent-secondary);
+  }
+
+  .nav-loading {
+    color: var(--text-muted);
+    font-size: var(--text-sm);
   }
 
   @media (max-width: 768px) {
@@ -87,6 +145,11 @@
   @media (max-width: 480px) {
     .brand-name {
       font-size: var(--text-base);
+    }
+
+    .nav-btn {
+      padding: var(--space-1) var(--space-2);
+      font-size: var(--text-xs);
     }
   }
 </style>

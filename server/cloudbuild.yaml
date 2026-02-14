@@ -1,0 +1,30 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args: ['build', '-t', '${_IMAGE_URI}', '.']
+
+  - name: gcr.io/cloud-builders/docker
+    args: ['push', '${_IMAGE_URI}']
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      [
+        'run',
+        'deploy',
+        '${_SERVICE_NAME}',
+        '--image',
+        '${_IMAGE_URI}',
+        '--region',
+        '${_REGION}',
+        '--platform',
+        'managed',
+        '--allow-unauthenticated'
+      ]
+
+images:
+  - '${_IMAGE_URI}'
+
+substitutions:
+  _SERVICE_NAME: codeduo-server
+  _REGION: us-central1
+  _IMAGE_URI: us-central1-docker.pkg.dev/$PROJECT_ID/codeduo/codeduo-server:latest

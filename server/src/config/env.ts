@@ -115,6 +115,16 @@ export function validateEnv(): void {
     missing.push('REFRESH_TOKEN_SECRET (or JWT_REFRESH_SECRET)');
   }
 
+  const hasWildcardFrontendOrigin =
+    process.env.FRONTEND_URL === '*' ||
+    parseOriginList(process.env.FRONTEND_URLS).includes('*');
+
+  if (hasWildcardFrontendOrigin) {
+    missing.push(
+      "Invalid frontend origin config: '*' is not allowed with credentialed CORS"
+    );
+  }
+
   if (missing.length > 0 && env.NODE_ENV === 'production') {
     throw new Error(
       `Missing required environment variables: ${missing.join(', ')}`

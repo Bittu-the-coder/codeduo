@@ -57,6 +57,7 @@
   let editorInstance: any = null;
   let monacoInstance: any = null;
   let collaboration: CollaborationInstance | null = null;
+  let binding: any = null;
   let awarenessInterval: ReturnType<typeof setInterval> | null = null;
 
   // ── Resize ──
@@ -105,6 +106,7 @@
 
   async function setupCollaboration(editor: any) {
     if (!browser) return;
+    cleanup();
     try {
       const { MonacoBinding } = await import('y-monaco');
       collaboration = createCollaboration(roomId, userName || undefined);
@@ -117,6 +119,13 @@
           // Use a metadata map to track if the room has been initialized
           const meta = collaboration.ydoc.getMap('meta');
           const isRoomInitialized = meta.get('initialized');
+          const sharedLangId = meta.get('language') as string;
+
+          // Sync language if it exists
+          if (sharedLangId) {
+            const l = getLanguageById(sharedLangId);
+            if (l) currentLanguage = l;
+          }
 
           if (!isRoomInitialized) {
             // Only insert boilerplate if this is the VERY first time
@@ -124,11 +133,27 @@
               collaboration.ytext.insert(0, currentLanguage.boilerplate);
             }
             meta.set('initialized', true);
+            meta.set('language', currentLanguage.id);
           }
         }
       });
 
-      new MonacoBinding(
+      // Listen for language changes from other users
+      collaboration.ydoc.getMap('meta').observe(event => {
+        if (event.keysChanged.has('language')) {
+          const newLangId = collaboration?.ydoc
+            .getMap('meta')
+            .get('language') as string;
+          if (newLangId) {
+            const l = getLanguageById(newLangId);
+            if (l && l.id !== currentLanguage.id) {
+              currentLanguage = l;
+            }
+          }
+        }
+      });
+
+      binding = new MonacoBinding(
         collaboration.ytext,
         editor.getModel(),
         new Set([editor]),
@@ -201,6 +226,7 @@
 
   // ── Actions ──
   function selectLanguage(lang: LanguageConfig) {
+    // Optimistic update
     currentLanguage = lang;
     showLangDropdown = false;
 
@@ -213,6 +239,9 @@
         if (collaboration) {
           collaboration.ytext.delete(0, collaboration.ytext.length);
           collaboration.ytext.insert(0, lang.boilerplate);
+
+          // Broadcast language change
+          collaboration.ydoc.getMap('meta').set('language', lang.id);
         }
       });
     }

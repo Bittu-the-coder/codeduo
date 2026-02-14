@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'node:crypto';
 import { cache } from '../../config/redis.js';
 import { logger } from '../../shared/utils/logger.js';
 import { projectRepository } from '../projects/project.repository.js';
@@ -39,7 +39,7 @@ class PresenceService {
 
     if (!session) {
       // Create new session
-      const roomId = uuidv4();
+      const roomId = randomUUID();
       session = await Session.create({
         projectId,
         roomId,

@@ -66,6 +66,7 @@ Deploy from `server/` using Docker.
 - `GITHUB_CLIENT_ID=...` (if OAuth enabled)
 - `GITHUB_CLIENT_SECRET=...` (if OAuth enabled)
 - `GITHUB_CALLBACK_URL=https://<your-backend-domain>/api/auth/github/callback` (optional, auto-derived from `BACKEND_URL`)
+- `LOG_TO_FILE=false` (recommended on Cloud Run)
 
 ### Option A: one-command Cloud Build + Cloud Run deploy
 ```bash

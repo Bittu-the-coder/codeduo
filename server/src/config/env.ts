@@ -89,6 +89,7 @@ export const env = {
 
   // Features
   ENABLE_RATE_LIMITING: process.env.ENABLE_RATE_LIMITING !== 'false',
+  LOG_TO_FILE: parseBooleanWithDefault(process.env.LOG_TO_FILE, false),
 } as const;
 
 const vercelPreviewOriginPattern = /^https:\/\/[a-z0-9-]+\.vercel\.app$/i;

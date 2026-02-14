@@ -41,8 +41,8 @@ export const logger = winston.createLogger({
   exitOnError: false,
 });
 
-// Add file transport in production
-if (env.NODE_ENV === 'production') {
+// Cloud Run should use stdout/stderr logging; file logging is opt-in.
+if (env.NODE_ENV === 'production' && env.LOG_TO_FILE) {
   logger.add(
     new winston.transports.File({
       filename: 'logs/error.log',

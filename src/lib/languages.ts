@@ -19,15 +19,7 @@ export const languages: LanguageConfig[] = [
 		pistonVersion: '18.15.0',
 		extension: '.js',
 		icon: '⟨JS⟩',
-		boilerplate: `// Welcome to CodeDuo! 🚀
-// Start coding in JavaScript
-
-function greet(name) {
-    return \`Hello, \${name}! Welcome to CodeDuo.\`;
-}
-
-console.log(greet("World"));
-`
+		boilerplate: ''
 	},
 	{
 		id: 'typescript',
@@ -37,15 +29,7 @@ console.log(greet("World"));
 		pistonVersion: '5.0.3',
 		extension: '.ts',
 		icon: '⟨TS⟩',
-		boilerplate: `// Welcome to CodeDuo! 🚀
-// Start coding in TypeScript
-
-function greet(name: string): string {
-    return \`Hello, \${name}! Welcome to CodeDuo.\`;
-}
-
-console.log(greet("World"));
-`
+		boilerplate: ''
 	},
 	{
 		id: 'python',
@@ -55,14 +39,7 @@ console.log(greet("World"));
 		pistonVersion: '3.10.0',
 		extension: '.py',
 		icon: '🐍',
-		boilerplate: `# Welcome to CodeDuo! 🚀
-# Start coding in Python
-
-def greet(name: str) -> str:
-    return f"Hello, {name}! Welcome to CodeDuo."
-
-print(greet("World"))
-`
+		boilerplate: ''
 	},
 	{
 		id: 'c',
@@ -72,16 +49,7 @@ print(greet("World"))
 		pistonVersion: '10.2.0',
 		extension: '.c',
 		icon: '©',
-		boilerplate: `// Welcome to CodeDuo! 🚀
-// Start coding in C
-
-#include <stdio.h>
-
-int main() {
-    printf("Hello, World! Welcome to CodeDuo.\\n");
-    return 0;
-}
-`
+		boilerplate: ''
 	},
 	{
 		id: 'cpp',
@@ -91,18 +59,7 @@ int main() {
 		pistonVersion: '10.2.0',
 		extension: '.cpp',
 		icon: '⊕',
-		boilerplate: `// Welcome to CodeDuo! 🚀
-// Start coding in C++
-
-#include <iostream>
-#include <string>
-
-int main() {
-    std::string name = "World";
-    std::cout << "Hello, " << name << "! Welcome to CodeDuo." << std::endl;
-    return 0;
-}
-`
+		boilerplate: ''
 	},
 	{
 		id: 'java',
@@ -112,16 +69,7 @@ int main() {
 		pistonVersion: '15.0.2',
 		extension: '.java',
 		icon: '☕',
-		boilerplate: `// Welcome to CodeDuo! 🚀
-// Start coding in Java
-
-public class Main {
-    public static void main(String[] args) {
-        String name = "World";
-        System.out.println("Hello, " + name + "! Welcome to CodeDuo.");
-    }
-}
-`
+		boilerplate: ''
 	}
 ];
 

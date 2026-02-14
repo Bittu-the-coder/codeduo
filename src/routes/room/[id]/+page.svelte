@@ -47,9 +47,11 @@
   }[] = $state([]);
 
   // ── Name Entry ──
-  let userName: string = $state('');
+  let userName: string = $state(
+    browser ? localStorage.getItem('codeduo-username') || '' : ''
+  );
   let nameInput: string = $state('');
-  let showNameModal: boolean = $state(true);
+  let showNameModal: boolean = $state(!userName);
 
   // ── Refs ──
   let editorInstance: any = null;
@@ -67,7 +69,6 @@
     if (!browser) return;
     const savedTheme = localStorage.getItem('codeduo-theme');
     const savedLang = localStorage.getItem('codeduo-lang');
-    const savedName = localStorage.getItem('codeduo-username');
     if (savedTheme) {
       const t = getThemeById(savedTheme);
       if (t) currentTheme = t;
@@ -75,10 +76,6 @@
     if (savedLang) {
       const l = getLanguageById(savedLang);
       if (l) currentLanguage = l;
-    }
-    if (savedName) {
-      userName = savedName;
-      showNameModal = false;
     }
   }
 
@@ -112,10 +109,24 @@
       const { MonacoBinding } = await import('y-monaco');
       collaboration = createCollaboration(roomId, userName || undefined);
 
-      // Initialize with boilerplate if document is empty
-      if (collaboration.ytext.toString() === '') {
-        collaboration.ytext.insert(0, currentLanguage.boilerplate);
-      }
+      let hasInitialized = false;
+      collaboration.provider.on('sync', (isSynced: boolean) => {
+        if (isSynced && !hasInitialized && collaboration) {
+          hasInitialized = true;
+
+          // Use a metadata map to track if the room has been initialized
+          const meta = collaboration.ydoc.getMap('meta');
+          const isRoomInitialized = meta.get('initialized');
+
+          if (!isRoomInitialized) {
+            // Only insert boilerplate if this is the VERY first time
+            if (collaboration.ytext.toString().trim() === '') {
+              collaboration.ytext.insert(0, currentLanguage.boilerplate);
+            }
+            meta.set('initialized', true);
+          }
+        }
+      });
 
       new MonacoBinding(
         collaboration.ytext,
@@ -198,8 +209,12 @@
     }
 
     if (collaboration) {
-      collaboration.ytext.delete(0, collaboration.ytext.length);
-      collaboration.ytext.insert(0, lang.boilerplate);
+      collaboration.ydoc.transact(() => {
+        if (collaboration) {
+          collaboration.ytext.delete(0, collaboration.ytext.length);
+          collaboration.ytext.insert(0, lang.boilerplate);
+        }
+      });
     }
 
     savePreferences();
@@ -249,11 +264,17 @@
   // ── Lifecycle ──
   onMount(() => {
     loadPreferences();
+    window.addEventListener('beforeunload', cleanup);
   });
 
-  onDestroy(() => {
+  function cleanup() {
     collaboration?.destroy();
     if (awarenessInterval) clearInterval(awarenessInterval);
+  }
+
+  onDestroy(() => {
+    cleanup();
+    if (browser) window.removeEventListener('beforeunload', cleanup);
   });
 
   // ── Close dropdowns on outside click ──

@@ -6,10 +6,16 @@
   import Hero from '$lib/components/landing/Hero.svelte';
   import Languages from '$lib/components/landing/Languages.svelte';
   import Navbar from '$lib/components/landing/Navbar.svelte';
-  import { v4 as uuidv4 } from 'uuid';
+
+  function generateRoomId(): string {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID().replace(/-/g, '').slice(0, 8);
+    }
+    return Math.random().toString(36).slice(2, 10);
+  }
 
   function createRoom() {
-    const roomId = uuidv4().slice(0, 8);
+    const roomId = generateRoomId();
     goto(`/room/${roomId}`);
   }
 

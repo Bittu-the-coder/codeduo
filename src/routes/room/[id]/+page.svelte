@@ -104,9 +104,15 @@
     );
   }
 
+  let isSettingUp = false;
+
   async function setupCollaboration(editor: any) {
     if (!browser) return;
+    if (isSettingUp) return; // Prevent race conditions
+
+    isSettingUp = true;
     cleanup();
+
     try {
       const { MonacoBinding } = await import('y-monaco');
       collaboration = createCollaboration(roomId, userName || undefined);
@@ -170,6 +176,8 @@
         'stderr',
         `⚠ Collaboration unavailable — editing locally`
       );
+    } finally {
+      isSettingUp = false;
     }
   }
 

@@ -4,6 +4,7 @@ import { connectDatabase, disconnectDatabase } from './config/database.js';
 import { env, validateEnv } from './config/env.js';
 import { connectRedis, disconnectRedis } from './config/redis.js';
 import { initializeCollaborationGateway } from './domains/collaboration/index.js';
+import { createYjsWebSocketServer } from './domains/collaboration/yws-server.js';
 import { logger } from './shared/utils/logger.js';
 
 async function bootstrap(): Promise<void> {
@@ -29,14 +30,31 @@ async function bootstrap(): Promise<void> {
     // Create HTTP server
     const httpServer = createServer(app);
 
-    // Initialize WebSocket gateway for collaboration
+    // Initialize Socket.IO gateway for presence/auth-aware features
     const io = initializeCollaborationGateway(httpServer);
     logger.info('Collaboration gateway initialized');
+
+    // Initialize y-websocket server (no auth required – handles Yjs sync)
+    const yjsWss = createYjsWebSocketServer();
+    logger.info('Yjs WebSocket server initialized');
+
+    // Route HTTP upgrade requests:
+    //   /socket.io/* → Socket.IO handles it internally
+    //   everything else → Yjs WebSocket server (room ID is the path)
+    httpServer.on('upgrade', (request, socket, head) => {
+      const url = request.url ?? '/';
+      if (!url.startsWith('/socket.io')) {
+        yjsWss.handleUpgrade(request, socket as any, head, ws => {
+          yjsWss.emit('connection', ws, request);
+        });
+      }
+      // Socket.IO registers its own 'upgrade' handler automatically
+    });
 
     // Start server
     httpServer.listen(env.PORT, env.HOST, () => {
       logger.info(`🚀 Server running at http://${env.HOST}:${env.PORT}`);
-      logger.info(`📡 WebSocket available at ws://${env.HOST}:${env.PORT}`);
+      logger.info(`📡 Yjs WebSocket at ws://${env.HOST}:${env.PORT}/<roomId>`);
       logger.info(`📚 API documentation at http://${env.HOST}:${env.PORT}/api`);
     });
 

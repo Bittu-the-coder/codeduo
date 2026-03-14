@@ -228,12 +228,17 @@
 
   function updateLanguageFromPath(path: string) {
     const ext = path.split('.').pop();
-    if (ext === 'js') selectLanguage(getLanguageById('javascript')!);
-    else if (ext === 'ts') selectLanguage(getLanguageById('typescript')!);
-    else if (ext === 'py') selectLanguage(getLanguageById('python')!);
-    else if (ext === 'java') selectLanguage(getLanguageById('java')!);
-    else if (ext === 'cpp') selectLanguage(getLanguageById('cpp')!);
-    else if (ext === 'c') selectLanguage(getLanguageById('c')!);
+    let lang: LanguageConfig | undefined;
+    if (ext === 'js') lang = getLanguageById('javascript')!;
+    else if (ext === 'ts') lang = getLanguageById('typescript')!;
+    else if (ext === 'py') lang = getLanguageById('python')!;
+    else if (ext === 'java') lang = getLanguageById('java')!;
+    else if (ext === 'cpp') lang = getLanguageById('cpp')!;
+    else if (ext === 'c') lang = getLanguageById('c')!;
+
+    if (lang) {
+      selectLanguage(lang);
+    }
   }
 
   // ── Tree Helper Functions ──
@@ -562,8 +567,20 @@
             );
             collaboration.ydoc.transact(() => {
               extractFilesFromTree(sourceFileTree);
-              projectMeta.set('file-list', sourceFileTree);
+              // Only set file-list if not already present from a peer
+              if (!projectMeta.get('file-list')) {
+                projectMeta.set('file-list', sourceFileTree);
+              }
+              // Seed language only if not already set by a peer
+              if (!projectMeta.get('language')) {
+                projectMeta.set('language', currentLanguage.id);
+              }
             });
+          } else {
+            // Even without a file tree, seed the language
+            if (!projectMeta.get('language')) {
+              projectMeta.set('language', currentLanguage.id);
+            }
           }
 
           // Sync files from remote if available
@@ -578,6 +595,16 @@
             );
           }
 
+          // Sync language from remote if available
+          const remoteLang = projectMeta.get('language') as string | undefined;
+          if (remoteLang) {
+            const lang = getLanguageById(remoteLang);
+            if (lang && lang.id !== currentLanguage.id) {
+              currentLanguage = lang;
+              savePreferences();
+            }
+          }
+
           if (activeFile) {
             bindEditorToFile(activeFile);
           }
@@ -585,11 +612,30 @@
       });
 
       collaboration.ydoc.getMap('project-meta').observe(() => {
-        const remoteFiles = collaboration?.ydoc
-          .getMap('project-meta')
-          .get('file-list') as FileTreeNode[] | undefined;
-        if (remoteFiles) {
+        const meta = collaboration?.ydoc.getMap('project-meta');
+        if (!meta) return;
+
+        // Sync file list from peers
+        const remoteFiles = meta.get('file-list') as FileTreeNode[] | undefined;
+        if (remoteFiles && remoteFiles.length > 0) {
           files = remoteFiles;
+        }
+
+        // Sync language from peers
+        const remoteLang = meta.get('language') as string | undefined;
+        if (remoteLang) {
+          const lang = getLanguageById(remoteLang);
+          if (lang && lang.id !== currentLanguage.id) {
+            currentLanguage = lang;
+            savePreferences();
+            // Update Monaco editor language on the active model
+            if (monacoInstance && editorInstance) {
+              const model = editorInstance.getModel();
+              if (model) {
+                monacoInstance.editor.setModelLanguage(model, lang.monacoId);
+              }
+            }
+          }
         }
       });
 
@@ -897,6 +943,10 @@
     currentLanguage = lang;
     showLangDropdown = false;
     savePreferences();
+    // Broadcast language change to all peers via Yjs
+    if (collaboration) {
+      collaboration.setLanguage(lang.id);
+    }
     // Note: We don't reset content here anymore as we rely on Yjs file content
   }
 
